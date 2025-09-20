@@ -9,38 +9,16 @@ import (
 	"github.com/gogf/gf/v2/container/gqueue"
 	"github.com/gogf/gf/v2/os/glog"
 	"github.com/gogf/gf/v2/os/grpool"
+
 	"github.com/ppoonk/utils/balancer"
 	"gopkg.in/gomail.v2"
 )
 
-// TODO 根据限制规则，完善功能
-/*
-可能的一些限制（数据来自网络）：
-
-QQ邮箱：
-一次性不能超过10个
-一分钟不能超过40封
-一天不能超过100封
-
-gmail：
-每小时 20 封
-每 24 小时期间500 封
-
-163邮箱：
-普通用户每日可享有200-400封发信量
-基础版会员每日可享有600-800封发信量
-超级会员每日可享有1200-1400封发信量
-
-oOutlook.com：
-每日收件人：5,000
-每封邮件的最大收件人数：500
-每日非关系收件人：1,000
-
-*/
-
 const (
-	PushTypeEmail     PushType = "Email"
-	emailSenderLogTag string   = "[Email sender]"
+	PushTypeEmail PushType = "Email"
+	emailLogTag   string   = "[Email sender]"
+	emailLogPath  string   = "./log/email/"
+	emailLogLevel string   = "debug"
 )
 
 var (
@@ -62,13 +40,13 @@ type (
 	}
 )
 
-func WithEmailSender(logger *glog.Logger, config ...EmailSenderCoreConfig) Option {
+func WithEmailSender(config ...EmailSenderCoreConfig) Option {
 	return func(ps *PushService) {
-		ps.senders.LoadOrStore(PushTypeEmail, NewEmailSender(logger, config...))
+		ps.senders.LoadOrStore(PushTypeEmail, NewEmailSender(config...))
 	}
 }
 
-func NewEmailSender(logger *glog.Logger, config ...EmailSenderCoreConfig) *EmailSender {
+func NewEmailSender(config ...EmailSenderCoreConfig) *EmailSender {
 	var servers []*EmailSenderCore
 
 	for _, v := range config {
@@ -79,12 +57,17 @@ func NewEmailSender(logger *glog.Logger, config ...EmailSenderCoreConfig) *Email
 			dialer: dialer,
 		})
 	}
-	logger.SetPrefix(logger.GetConfig().Prefix + emailSenderLogTag)
+	// 设置日志
+	l := glog.New()
+	_ = l.SetPath(emailLogPath)
+	_ = l.SetLevelStr(emailLogLevel)
+	l.SetPrefix(emailLogTag)
+	l.SetStack(false)
 
 	return &EmailSender{
 		queue:    gqueue.New(),
 		workPoll: grpool.New(10),
-		logger:   logger,
+		logger:   l,
 		swrr:     balancer.NewSmoothWeightedRoundRobin(servers),
 	}
 }

@@ -25,6 +25,9 @@ const (
 	tgBotSenderLogTag   string        = "[TgBot sender]"
 	tgBotSendTimeLimit  time.Duration = 3 * time.Second
 	defaultCacheTimeout time.Duration = 5 * time.Second
+	tgbotLogTag                       = "[TgBot]"
+	tgbotLogPath                      = "./log/tgbot.log"
+	tgbotLogLevel                     = "debug"
 )
 
 type (
@@ -55,8 +58,8 @@ type (
 	}
 )
 
-func WithTgBotSender(logger *glog.Logger, config TgBotConfig) (Option, error) {
-	sender, err := NewTgBotSender(logger, config)
+func WithTgBotSender(config TgBotConfig) (Option, error) {
+	sender, err := NewTgBotSender(config)
 	if err != nil {
 		return nil, err
 	}
@@ -66,7 +69,7 @@ func WithTgBotSender(logger *glog.Logger, config TgBotConfig) (Option, error) {
 	}, nil
 }
 
-func NewTgBotSender(logger *glog.Logger, config TgBotConfig) (*TgBotSender, error) {
+func NewTgBotSender(config TgBotConfig) (*TgBotSender, error) {
 	var opts []bot.Option
 	if config.DefaultHandler != nil {
 		opts = append(opts, bot.WithDefaultHandler(config.DefaultHandler))
@@ -86,7 +89,12 @@ func NewTgBotSender(logger *glog.Logger, config TgBotConfig) (*TgBotSender, erro
 	if err != nil {
 		return nil, err
 	}
-	logger.SetPrefix(logger.GetConfig().Prefix + tgBotSenderLogTag)
+	// 设置日志
+	l := glog.New()
+	_ = l.SetPath(tgbotLogPath)
+	_ = l.SetLevelStr(tgbotLogLevel)
+	l.SetPrefix(tgbotLogTag)
+	l.SetStack(false)
 
 	return &TgBotSender{
 		config:   config,
@@ -94,7 +102,7 @@ func NewTgBotSender(logger *glog.Logger, config TgBotConfig) (*TgBotSender, erro
 		queue:    gqueue.New(),
 		cache:    gcache.New(),
 		workPoll: grpool.New(20),
-		logger:   logger,
+		logger:   l,
 	}, nil
 }
 

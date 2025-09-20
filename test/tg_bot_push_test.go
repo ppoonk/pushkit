@@ -10,7 +10,6 @@ import (
 	"github.com/ppoonk/pushkit"
 
 	"github.com/gogf/gf/v2/os/gctx"
-	"github.com/gogf/gf/v2/os/glog"
 )
 
 // go test -v test/tg_bot_push_test.go
@@ -21,12 +20,9 @@ func TestTgBotPush(t *testing.T) {
 		ProxyURL:       "http://192.168.0.61:7899",
 		DefaultHandler: nil,
 	}
-	// 日志
-	l := glog.New()
-	l.SetPath(".log/tgbot")
 
 	// 创建推送服务、启动
-	op, err := pushkit.WithTgBotSender(l, config)
+	op, err := pushkit.WithTgBotSender(config)
 	if err != nil {
 		t.Error("WithTgBotSender error: ", err)
 		return

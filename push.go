@@ -8,11 +8,6 @@ import (
 )
 
 type (
-	PushService struct {
-		senders   sync.Map // key=PushType, value=Sender
-		cancel    context.CancelFunc
-		isRunning atomic.Bool
-	}
 	PushRequest struct {
 		Type    PushType
 		Message Message
@@ -25,6 +20,12 @@ type (
 	PushType string
 
 	Option func(*PushService)
+
+	PushService struct {
+		senders   sync.Map // key=PushType, value=Sender
+		cancel    context.CancelFunc
+		isRunning atomic.Bool
+	}
 
 	Sender interface {
 		Push(ctx context.Context, message Message) error

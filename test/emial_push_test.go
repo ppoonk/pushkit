@@ -10,7 +10,6 @@ import (
 	"github.com/ppoonk/pushkit"
 
 	"github.com/gogf/gf/v2/os/gctx"
-	"github.com/gogf/gf/v2/os/glog"
 )
 
 // clear && go test -v test/emial_push_test.go
@@ -34,12 +33,9 @@ func TestEmailPush(t *testing.T) {
 			Weight:   1,
 		},
 	}
-	// 日志
-	l := glog.New()
-	l.SetPath(".log/email")
 
 	// 创建推送服务、启动
-	op := pushkit.WithEmailSender(l, emailConfig...)
+	op := pushkit.WithEmailSender(emailConfig...)
 	p := pushkit.NewPushService(op)
 	err := p.Start()
 	defer p.Stop()
